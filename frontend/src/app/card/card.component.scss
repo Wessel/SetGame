@@ -1,0 +1,53 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  height: 140px;
+  border: 2px solid black;
+  border-radius: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.red {
+  color: red;
+}
+
+.green {
+  color: green;
+}
+
+.blue {
+  color: purple;
+}
+
+.opaque {
+  opacity: 0.5;
+}
+
+.transparent {
+  opacity: 0.2;
+}
+
+.solid {
+  opacity: 1;
+}
+
+.oval {
+  border-radius: 50%;
+  height: 100px;
+  border: 20px solid black;
+}
+
+.squiggle {
+  border-radius: 0;
+  border: 2px solid black;
+}
+
+.diamond {
+  border-radius: 0;
+  border: 2px solid black;
+}

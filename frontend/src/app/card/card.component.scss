@@ -12,16 +12,20 @@
   cursor: pointer;
 }
 
+.selected {
+  border: 4px solid black;
+}
+
 .red {
-  color: red;
+  filter: invert(7%) sepia(97%) saturate(5069%) hue-rotate(4deg) brightness(92%) contrast(111%);
 }
 
 .green {
-  color: green;
+  filter: invert(23%) sepia(41%) saturate(7500%) hue-rotate(118deg) brightness(90%) contrast(107%);
 }
 
 .blue {
-  color: purple;
+  filter: invert(18%) sepia(36%) saturate(6314%) hue-rotate(236deg) brightness(64%) contrast(141%);
 }
 
 .opaque {

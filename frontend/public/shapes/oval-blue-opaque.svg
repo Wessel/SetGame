@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Laag_2" data-name="Laag 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 123.74 45.35">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-1, .cls-2 {
+        stroke: #fff;
+        stroke-miterlimit: 10;
+        stroke-width: 2px;
+      }
+
+      .cls-2 {
+        fill: #98c4db;
+      }
+    </style>
+  </defs>
+  <g id="Laag_1-2" data-name="Laag 1">
+    <ellipse class="cls-2" cx="61.87" cy="22.68" rx="60.87" ry="21.68"/>
+    <line class="cls-1" x1="6.69" y1="31.4" x2="34.95" y2="3.14"/>
+    <line class="cls-1" x1="15.79" y1="36.51" x2="51.19" y2="1.1"/>
+    <line class="cls-1" x1="25.68" y1="40.23" x2="65.07" y2=".84"/>
+    <line class="cls-1" x1="36.95" y1="42.5" x2="77.79" y2="1.66"/>
+    <line class="cls-1" x1="49.11" y1="43.98" x2="89.69" y2="3.4"/>
+    <line class="cls-1" x1="61.79" y1="44.27" x2="100.19" y2="5.87"/>
+    <line class="cls-1" x1="74.09" y1="43.92" x2="109.26" y2="8.76"/>
+    <line class="cls-1" x1="88.04" y1="42.1" x2="116.63" y2="13.5"/>
+  </g>
+</svg>

@@ -1,7 +1,8 @@
 namespace backend.Models;
 
 public struct SetCheckResult {
-  public bool IsSet { get; set; }
+  public bool? IsSet { get; set; }
+  public bool? IsFinished { get; set; }
   public Game NewState { get; set; }
 }
 
@@ -56,16 +57,28 @@ public class Game {
 
     var finished = Deck.Length == 0 && Hand.All(card => card == 0);
 
-    if (finished) Hand = [];
+    // Empty hand if game is finished for optimal database space usage
+    if (finished) {
+      Hand = [];
+    }
 
     return finished;
   }
 
   public SetCheckResult? IsSet(ushort[] indices) {
-    if (indices.Length != 3 || Hand == null) return null;
+    if (GameIsFinished()) {
+      FinishedAt = DateTime.Now;
 
-    bool AnyEmpty = indices.Any(index => Hand[index] == 0);
-    if (AnyEmpty) return null;
+      return new SetCheckResult { IsFinished = true, NewState = this };
+    }
+
+    if (indices.Length != 3 || Hand == null) {
+      return null;
+    }
+
+    if (indices.Any(index => Hand[index] == 0)) {
+      return null;
+    }
 
     var cards = indices
       .Select(index => Card.ToCard(Hand[index]))
@@ -78,7 +91,6 @@ public class Game {
 
     if (!matchingShapes && !matchingColors && !matchingShades && !matchingCounts) {
       Fails += 1;
-
       return new SetCheckResult { IsSet = false, NewState = this };
     }
 
@@ -86,10 +98,6 @@ public class Game {
     // (From the top may cause the indices to be off by one)
     foreach (var index in indices.OrderByDescending(i => i)) {
       ReplaceCardInHand(index);
-    }
-
-    if (GameIsFinished()) {
-      FinishedAt = DateTime.Now;
     }
 
     return new SetCheckResult { IsSet = true, NewState = this };

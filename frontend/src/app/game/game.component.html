@@ -1,7 +1,12 @@
 <div class="game-wrapper">
   <div class="game-container text-gray-200 flex flex-col md:flex-row bg-gray-600 w-[90%] mx-auto md:mt-10 md:rounded-lg md:shadow-lg">
     <div class="game-board w-full md:w-3/4 md:mr-0">
-      <app-card *ngFor="let card of gameService.hand" [card]="card" (click)="selectCard(card)" [class.selected]="card.selected"></app-card>
+      <app-card 
+        *ngFor="let card of gameService.hand" 
+        [card]="card" 
+        [selected]="card.selected || false" 
+        (click)="selectCard(card)" 
+      />
     </div>
     <div class="stats w-full md:w-2/7">
       <div class="text-sm">

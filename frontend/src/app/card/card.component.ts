@@ -10,13 +10,14 @@ import { CommonModule } from '@angular/common';
 })
 export class CardComponent {
   @Input() card!: Card;
+  @Input() selected: boolean = false;
 
   parseShade() {
     switch (this.card.shade) {
       case CardShade.Opaque:
         return 'opaque';
       case CardShade.Solid:
-        return 'translucent';
+        return 'solid';
       case CardShade.Transparent:
         return 'transparent';
     }

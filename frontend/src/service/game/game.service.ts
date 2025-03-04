@@ -8,13 +8,18 @@ export class GameService {
   private deck: Card[] = [];
   public hand: Card[] = [];
 
-  private gameId: number = 0;
+  public gameId: number = 0;
   public fails: number = 0;
   public startDate: Date = new Date();
   public selectedCards: Card[] = [];
 
   constructor() {
-    this.initializeDeck();
+  }
+
+  public initGame(gameId?: string): Promise<string> {
+    this.deck = [];
+    this.hand = [];
+    return gameId ? this.initializeExistingGame(gameId) : this.initializeDeck();
   }
 
   public stats(): any {
@@ -22,21 +27,37 @@ export class GameService {
     return { size: this.deck.length, fails: this.fails, dateStarted: formattedDate };
   }
 
-  private initializeDeck(): void {
-    axios.post('http://localhost:5224/api/v1/Games', {}).then((response) => {
-      console.log(response.data);
-      response.data.deck.forEach((card: number) => {
+  public async initializeExistingGame(gameId: string): Promise<string> {
+    const req = await axios.get('http://localhost:5224/api/v1/Games/' + gameId);
+    req.data.deck.forEach((card: number) => {
+      this.deck.push(toCard(card));
+
+    });
+      req.data.hand.forEach((card: number) => {
+        this.hand.push(toCard(card));
+      });
+      this.startDate = new Date(req.data.startedAt);
+      this.fails = req.data.fails;
+      this.gameId = req.data.id;
+    
+      return req.data.id;
+
+  }
+
+  private async initializeDeck(): Promise<string> {
+    const res = await axios.post('http://localhost:5224/api/v1/Games', {});
+    res.data.deck.forEach((card: number) => {
         this.deck.push(toCard(card));
     });
 
-      response.data.hand.forEach((card: number) => {
+    res.data.hand.forEach((card: number) => {
         this.hand.push(toCard(card));
       });
 
-      this.startDate = new Date(response.data.startedAt);
-      this.fails = response.data.fails;
-      this.gameId = response.data.id;
-    });
+      this.startDate = new Date(res.data.startedAt);
+      this.fails = res.data.fails;
+      this.gameId = res.data.id;
+      return res.data.id;
   }
 
   public selectCard(card: Card): void {
@@ -51,7 +72,6 @@ export class GameService {
 
     if (this.selectedCards.length === 3) {
       const [card1, card2, card3] = this.selectedCards as [Card, Card, Card]; // ✅ Explicitly cast to a tuple
-      console.log(this.hand.indexOf(card1), this.hand.indexOf(card2), this.hand.indexOf(card3));
       if (this.isSet([this.hand.indexOf(card1), this.hand.indexOf(card2), this.hand.indexOf(card3)])) {
         this.replaceSet();
       }
@@ -66,7 +86,6 @@ export class GameService {
     // });
       this.selectedCards = [];
     axios.post('http://localhost:5224/api/v1/Games/CheckSet/' + this.gameId, cards).then((response) => {
-      console.log(response.data);
       this.hand = response.data.newState.hand.map((card: number) => toCard(card));
       this.deck = response.data.newState.deck.map((card: number) => toCard(card));
       this.fails = response.data.newState.fails;

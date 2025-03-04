@@ -1,0 +1,38 @@
+.wrapper {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.table-container {
+  overflow-x: auto;
+}
+  
+.game-table {
+  // width: 90%;
+  border-collapse: collapse;
+  // margin: 20px 0;
+}
+  
+.game-table th, .game-table td {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+  
+  .game-table th {
+    background-color: #111;
+    font-weight: bold;
+  }
+  
+  .game-table tr:nth-child(even) {
+    background-color: #333;
+  }
+  
+  .game-table tr:hover {
+    background-color: #222;
+  }
+ 
+ td {
+  padding: 5px !important;
+ }

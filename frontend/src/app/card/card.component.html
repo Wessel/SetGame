@@ -1,5 +1,9 @@
-<div class="card" [class.selected]="selected" style="background: #666;">
-  <div *ngFor="let i of [].constructor(parseCount())">
-    <img width="80px" [src]="'shapes/' + parseShape() + '-' + parseColor() + '-' + parseShade() + '.svg'" alt="Card Image">
-  </div>
+<div class="card" [class.selected]="selected">
+  @for (i of parseCount(); track i) {
+    <img 
+      [width]="shapeWidth" 
+      [src]="shapeFile" 
+      alt="Card Image"
+    >
+  }
 </div>

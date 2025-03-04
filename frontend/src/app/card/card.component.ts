@@ -1,58 +1,52 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Card, CardColor, CardCount, CardShade, CardShape } from '../models/card';
-import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-card',
-  imports: [CommonModule],
+  selector: 'game-card',
   templateUrl: './card.component.html',
   styleUrls: ['./card.component.scss']
 })
-export class CardComponent {
+
+export class CardComponent implements OnInit {
   @Input() card!: Card;
   @Input() selected: boolean = false;
 
+  shapeFile: string = '';
+  shapeWidth: number = 80;
+
+  ngOnInit() {
+    this.shapeFile = `shapes/${this.parseShape()}-${this.parseColor()}-${this.parseShade()}.svg`;
+  }
+
   parseShade() {
     switch (this.card.shade) {
-      case CardShade.Opaque:
-        return 'opaque';
-      case CardShade.Solid:
-        return 'solid';
-      case CardShade.Transparent:
-        return 'transparent';
+      case CardShade.Opaque: return 'opaque';
+      case CardShade.Solid: return 'solid';
+      default: return 'transparent';
     }
   }
 
   parseColor() {
     switch (this.card.color) {
-      case CardColor.Red:
-        return 'red';
-      case CardColor.Green:
-        return 'green';
-      case CardColor.Blue:
-        return 'blue';
+      case CardColor.Red: return 'red';
+      case CardColor.Green: return 'green';
+      default: return 'blue';
     }
   }
 
   parseCount() {
     switch (this.card.count) {
-      case CardCount.One:
-        return 1;
-      case CardCount.Two:
-        return 2;
-      case CardCount.Three:
-        return 3;
+      case CardCount.One: return [1];
+      case CardCount.Two: return [1, 2];
+      default: return [1, 2, 3];
     }
   }
 
   parseShape() {
     switch (this.card.shape) {
-      case CardShape.Diamond:
-        return 'diamond';
-      case CardShape.Squiggle:
-        return 'squiggle';
-      case CardShape.Oval:
-        return 'oval';
+      case CardShape.Diamond: return 'diamond';
+      case CardShape.Squiggle: return 'squiggle';
+      default: return 'oval';
     }
   }
 }

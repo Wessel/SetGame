@@ -5,7 +5,7 @@ import axios from 'axios';
 @Injectable({ providedIn: 'root' })
 
 export class GameService {
-  private deck: Card[] = [];
+  public deck: Card[] = [];
   public hand: Card[] = [];
 
   public gameId: number = 0;

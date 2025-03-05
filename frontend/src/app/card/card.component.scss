@@ -7,14 +7,28 @@
   width: 100px;
   height: 140px;
 
-  border: 2px solid black;
+  border: 1px solid #AAAAAA;
 
-  background: #666;
-  border-radius: 10px;
+  background: #111;
+  border-radius: 2px;
   transition: all 0.3s;
   cursor: pointer;
 
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+
   &.selected {
     border: 4px solid white;
+  }
+
+  &.small {
+    width: 30px;
+    height: 30px;
+    margin: 1px;
+
+    img {
+      width: 20px;
+    }
   }
 }

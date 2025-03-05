@@ -10,6 +10,7 @@ import { Card, CardColor, CardCount, CardShade, CardShape } from '../models/card
 export class CardComponent implements OnInit {
   @Input() card!: Card;
   @Input() selected: boolean = false;
+  @Input() small: boolean = false;
 
   shapeFile: string = '';
   shapeWidth: number = 80;

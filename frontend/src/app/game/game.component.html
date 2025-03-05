@@ -1,8 +1,6 @@
 <div class="game-wrapper">
-  <a class="text-blue-500 hover:underline cursor-pointer mt-1 md:mt-0 md:ml-4 self-start md:self-start" (click)="returnHome()">Go back</a>
-
-  <div class="game-container text-gray-200 flex flex-col md:flex-row bg-gray-600 w-[90%] mx-auto md:mt-10 md:rounded-lg md:shadow-lg">
-    <div class="game-board w-full md:w-3/4 md:mr-0">
+  <div class="game-container text-gray-200 flex flex-col md:flex-row  w-[90%] mx-auto  md:rounded-lg md:shadow-lg">
+    <div class="game-board w-full md:w-3/5 md:mr-0">
       @for(card of gameService.hand; track card.id) {
         <game-card 
           [card]="card" 
@@ -12,8 +10,11 @@
       }
     </div>
 
-    <div class="stats w-full md:w-2/7">
+    <div class="stats w-full md:w-2/5">
       <div class="text-sm">
+          <button class="red" (click)="deleteGame()">
+            Delete Game
+          </button>
         <p>
           <span class="font-bold">Deck Size</span> 
           <span class="float-right">{{ gameService.stats().size }}</span>
@@ -23,18 +24,21 @@
           <span class="float-right">{{ gameService.stats().fails }}</span>
         </p>
         <p>
-          <span class="font-bold">Started on</span> 
+          <span class="font-bold" style="padding-right: 100px;">Started on</span> 
           <span class="float-right">{{ gameService.stats().dateStarted | date:'dd-MM-YYYY HH:mm' }}</span>
         </p>
-        <p>
-          <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" (click)="deleteGame()">
-            Delete Game
-          </button>
-        </p>
-        <!-- <p>
-          <span class="font-bold">Time Played</span>
-          <span class="float-right">{{ timePlayed }}</span>
-        </p> -->
+      <div>
+        <h1 class="font-bold">Upcoming Cards</h1>
+        <div class="flex flex-wrap">
+          @for(card of gameService.deck; track card.id) {
+            <game-card 
+              [card]="card" 
+              [selected]="false" 
+              [small]="true"
+              (click)="selectCard(card)"
+            />
+          }
+      </div>
       </div>
     </div>
   </div>

@@ -1,9 +1,10 @@
-<div class="card" [class.selected]="selected">
+<div class="card" [class.small]="small" [class.selected]="selected">
   @for (i of parseCount(); track i) {
     <img 
-      [width]="shapeWidth" 
+      [width]="shapeWidth"
       [src]="shapeFile" 
       alt="Card Image"
+      draggable="false"
     >
   }
 </div>

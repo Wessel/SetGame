@@ -104,4 +104,8 @@ export class GameService {
     });
     this.selectedCards = [];
   }
+
+  public async deleteGame() {
+    await axios.delete('http://localhost:5224/api/v1/Games/' + this.gameId);
+  }
 }

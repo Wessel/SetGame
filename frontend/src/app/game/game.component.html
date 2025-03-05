@@ -1,4 +1,6 @@
 <div class="game-wrapper">
+  <a class="text-blue-500 hover:underline cursor-pointer mt-1 md:mt-0 md:ml-4 self-start md:self-start" (click)="returnHome()">Go back</a>
+
   <div class="game-container text-gray-200 flex flex-col md:flex-row bg-gray-600 w-[90%] mx-auto md:mt-10 md:rounded-lg md:shadow-lg">
     <div class="game-board w-full md:w-3/4 md:mr-0">
       @for(card of gameService.hand; track card.id) {
@@ -23,6 +25,11 @@
         <p>
           <span class="font-bold">Started on</span> 
           <span class="float-right">{{ gameService.stats().dateStarted | date:'dd-MM-YYYY HH:mm' }}</span>
+        </p>
+        <p>
+          <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" (click)="deleteGame()">
+            Delete Game
+          </button>
         </p>
         <!-- <p>
           <span class="font-bold">Time Played</span>

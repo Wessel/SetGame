@@ -1,0 +1,13 @@
+<header class="flex flex-col items-center bg-gray-900 text-white shadow-lg rounded-sm">
+  <div class="flex items-center">
+    <img src="logo.svg" class="w-12 h-12 mr-3">
+    <h1 class="text-2xl font-bold">SET</h1>
+  </div>
+  <nav class="w-full">
+    <ul class="flex justify-center space-x-6 text-xs mb-2">
+      <li><a (click)="routeTo('/game-list')" class="cursor-pointer hover:underline">Game List</a></li>
+      <li><a (click)="routeTo('/')" class="cursor-pointer text-white hover:underline">Back Home</a></li>
+      <li><a (click)="routeTo('/game')" class="cursor-pointer text-white hover:underline">New Game</a></li>
+    </ul>
+  </nav>
+</header>

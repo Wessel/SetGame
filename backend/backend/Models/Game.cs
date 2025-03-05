@@ -40,7 +40,6 @@ public class Game {
 
     var handList = Hand.ToList();
 
-    Console.WriteLine("Deck Length: " + Deck.Length);
     if (Deck.Length < 1) {
       handList[index] = 0; 
       Hand = [.. handList];     

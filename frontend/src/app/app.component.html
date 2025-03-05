@@ -1,3 +1,16 @@
+  <style>
+    app-header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+
+    .content {
+      padding-top: 60px; /* Adjust this value based on the height of your header */
+    }
+  </style>
+  <app-header></app-header>
 <section class="content min-h-[100%] bg-gray-800 items-center">
   <router-outlet></router-outlet>  <!-- <app-start-screen /> -->
 </section>

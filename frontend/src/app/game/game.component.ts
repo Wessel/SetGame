@@ -3,7 +3,7 @@ import { GameService } from '../../service/game/game.service';
 import { Card } from '../models/card';
 import { CommonModule } from '@angular/common';
 import { CardComponent } from '../card/card.component';
-import { ActivatedRoute, UrlSegment } from '@angular/router';
+import { ActivatedRoute, UrlSegment, Router } from '@angular/router';
 
 @Component({
   selector: 'app-game',
@@ -15,22 +15,28 @@ import { ActivatedRoute, UrlSegment } from '@angular/router';
 export class GameComponent {
   gameId: string = '';
 
-  constructor(public gameService: GameService, private route: ActivatedRoute) {
+  constructor(public gameService: GameService, private route: ActivatedRoute, private router: Router) {
     this.route.params.subscribe(params => {
       this.gameId = params['id'];
-      // You can use this.gameId to fetch game-specific data if needed
+
       this.attachId(this.gameId);
     });
-        // this.route.snapshot.url.push({ path: this.gameId });
-        //     this.route.snapshot.params['id'] = this.gameId;
-        // // Update the URL without reloading the page
+  }
 
+  returnHome() {
+    this.router.navigate(['/']);
   }
 
   async attachId(i: string) {
     const id = await this.gameService.initGame(i);
+
     this.route.snapshot.url.push(new UrlSegment(id, {}));
     window.history.replaceState({}, '', `/game/${id}`);
+  }
+
+  deleteGame() {
+    this.gameService.deleteGame();
+    this.returnHome();
   }
 
   selectCard(card: Card) {

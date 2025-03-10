@@ -1,10 +1,14 @@
-<div class="card" [class.small]="small" [class.selected]="selected">
-  @for (i of parseCount(); track i) {
-    <img 
-      [width]="shapeWidth"
-      [src]="shapeFile" 
-      alt="Card Image"
-      draggable="false"
-    >
-  }
-</div>
+@if (card.id != 0) {
+  <div class="card" [class.small]="small" [class.selected]="selected">
+    @for (i of parseCount(); track i) {
+      <img 
+        [width]="shapeWidth"
+        [src]="shapeFile" 
+        alt="Card Image"
+        draggable="false"
+      >
+    }
+  </div>
+} @else {
+  <div class="card" style="border: 0px; background: transparent;"></div>
+}

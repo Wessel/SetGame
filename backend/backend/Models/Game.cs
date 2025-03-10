@@ -16,7 +16,7 @@ public class Game {
 
   public void ShuffleDeck() {
     if (Deck == null) return;
-    
+
     Random rand = new Random();
     Deck = Deck.OrderBy(_ => rand.Next()).ToArray();
   }
@@ -31,7 +31,7 @@ public class Game {
       handList.Add(Deck[0]);
       Deck = [.. Deck.Skip(1)];
     }
-    
+
     Hand = [.. handList];
   }
 
@@ -41,8 +41,8 @@ public class Game {
     var handList = Hand.ToList();
 
     if (Deck.Length < 1) {
-      handList[index] = 0; 
-      Hand = [.. handList];     
+      handList[index] = 0;
+      Hand = [.. handList];
       return;
     }
 
@@ -83,12 +83,12 @@ public class Game {
       .Select(index => Card.ToCard(Hand[index]))
       .ToList();
 
-    bool matchingShapes = cards.Select(card => card.Shape).Distinct().Count() == 1;
-    bool matchingColors = cards.Select(card => card.Color).Distinct().Count() == 1;
-    bool matchingShades = cards.Select(card => card.Shade).Distinct().Count() == 1;
-    bool matchingCounts = cards.Select(card => card.Count).Distinct().Count() == 1;
-
-    if (!matchingShapes && !matchingColors && !matchingShades && !matchingCounts) {
+    if (!(
+      AllSameOrDifferent(cards[0].Shape, cards[1].Shape, cards[2].Shape) &&
+      AllSameOrDifferent(cards[0].Color, cards[1].Color, cards[2].Color) &&
+      AllSameOrDifferent(cards[0].Shade, cards[1].Shade, cards[2].Shade) &&
+      AllSameOrDifferent(cards[0].Count, cards[1].Count, cards[2].Count)
+    )) {
       Fails += 1;
       return new SetCheckResult { IsSet = false, NewState = this };
     }
@@ -100,5 +100,13 @@ public class Game {
     }
 
     return new SetCheckResult { IsSet = true, NewState = this };
+  }
+
+  private static bool AllSameOrDifferent<T>(T a, T b, T c) where T : Enum {
+    int ai = Convert.ToInt32(a);
+    int bi = Convert.ToInt32(b);
+    int ci = Convert.ToInt32(c);
+
+    return (ai == bi && bi == ci) || (ai != bi && bi != ci && ai != ci);
   }
 }

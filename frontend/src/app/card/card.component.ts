@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, input, Input, OnInit } from '@angular/core';
 import { Card, CardColor, CardCount, CardShade, CardShape } from '../models/card';
 
 @Component({

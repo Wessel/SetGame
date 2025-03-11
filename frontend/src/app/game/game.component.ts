@@ -14,6 +14,7 @@ import { ActivatedRoute, UrlSegment, Router } from '@angular/router';
 
 export class GameComponent {
   gameId: string = '';
+  hint: Card[] = []
 
   constructor(public gameService: GameService, private route: ActivatedRoute, private router: Router) {
     this.route.params.subscribe(params => {
@@ -39,8 +40,14 @@ export class GameComponent {
     this.returnHome();
   }
 
-  selectCard(card: Card) {
+  async selectCard(card: Card) {
     this.gameService.selectCard(card);
     card.selected = !card.selected;
+  }
+
+  async showHint() {
+    if (this.gameService.possibleSets.length < 0) return console.error('No valid sets found');
+
+    this.hint = [this.gameService.possibleSets[0][0], this.gameService.possibleSets[0][1]]
   }
 }

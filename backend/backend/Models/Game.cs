@@ -21,13 +21,13 @@ public class Game {
     Deck = Deck.OrderBy(_ => rand.Next()).ToArray();
   }
 
-  public void DealHand() {
+  public void DealHand(int max = 12) {
     if (Deck == null) return;
     Hand ??= [];
 
     List<ushort> handList = [.. Hand];
 
-    while (handList.Count < 12 && Deck.Length > 0) {
+    while (handList.Count < max && Deck.Length > 0) {
       handList.Add(Deck[0]);
       Deck = [.. Deck.Skip(1)];
     }
@@ -64,7 +64,7 @@ public class Game {
     return finished;
   }
 
-  public SetCheckResult? IsSet(ushort[] indices) {
+  public SetCheckResult? IsSet(ushort[] indices, bool remove = true) {
     if (GameIsFinished()) {
       FinishedAt = DateTime.Now;
 
@@ -89,14 +89,21 @@ public class Game {
       AllSameOrDifferent(cards[0].Shade, cards[1].Shade, cards[2].Shade) &&
       AllSameOrDifferent(cards[0].Count, cards[1].Count, cards[2].Count)
     )) {
+      // todo(wessel): Split up for checking algorithm to game data
       Fails += 1;
       return new SetCheckResult { IsSet = false, NewState = this };
     }
 
     // Order by Descending to make sure the correct card is removed
     // (From the top may cause the indices to be off by one)
-    foreach (var index in indices.OrderByDescending(i => i)) {
-      ReplaceCardInHand(index);
+    if (remove) {
+      foreach (var index in indices.OrderByDescending(i => i)) {
+        ReplaceCardInHand(index);
+      }
+
+      while (GetIndicesOfSet().Count < 1 && Deck?.Length > 0) {
+        DealHand(Hand.Length + 1);
+      }
     }
 
     return new SetCheckResult { IsSet = true, NewState = this };
@@ -108,5 +115,25 @@ public class Game {
     int ci = Convert.ToInt32(c);
 
     return (ai == bi && bi == ci) || (ai != bi && bi != ci && ai != ci);
+  }
+
+  public List<int[]> GetIndicesOfSet() {
+    if (Hand == null) return new List<int[]>();
+    List<int[]> res = new List<int[]>();
+
+    for (int i = 0; i < Hand.Length; i++) {
+        for (int j = i + 1; j < Hand.Length; j++) {
+            for (int k = j + 1; k < Hand.Length; k++) {
+                var result = IsSet([(ushort)i, (ushort)j, (ushort)k], false);
+
+                if (result?.IsSet == true) {
+                    Console.WriteLine($"Found set at {i}, {j}, {k}");
+                    res.Add([i, j, k]);
+                }
+            }
+        }
+    }
+
+    return res;
   }
 }

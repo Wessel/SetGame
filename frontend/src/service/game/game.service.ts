@@ -7,6 +7,7 @@ import axios from 'axios';
 export class GameService {
   public deck: Card[] = [];
   public hand: Card[] = [];
+  public possibleSets: Card[][] = [];
 
   public gameId: number = 0;
   public fails: number = 0;
@@ -39,6 +40,7 @@ export class GameService {
       this.startDate = new Date(req.data.startedAt);
       this.fails = req.data.fails;
       this.gameId = req.data.id;
+      await this.updateSets();
     
       return req.data.id;
 
@@ -57,6 +59,9 @@ export class GameService {
       this.startDate = new Date(res.data.startedAt);
       this.fails = res.data.fails;
       this.gameId = res.data.id;
+
+      await this.updateSets();
+
       return res.data.id;
   }
 
@@ -78,8 +83,18 @@ export class GameService {
     }
   }
 
+  public async updateSets(): Promise<Card[][]> {
+    const req = await axios.get('http://localhost:5224/api/v1/Games/SetsInHand/' + this.gameId);
+    const cards = req.data.map((set: number[]) => set.map((card: number) => this.hand[card]));
+
+    this.possibleSets = cards;
+
+    return cards;
+  }
+
 
   private isSet(cards: number[]): boolean {
+    console.log(this.possibleSets);
     // return (['shape', 'color', 'count', 'shade'] as (keyof Card)[]).every(attr => {
     //   const values = new Set([card1[attr], card2[attr], card3[attr]]);
     //   return values.size === 1 || values.size === 3;
@@ -89,6 +104,7 @@ export class GameService {
       this.hand = response.data.newState.hand.map((card: number) => toCard(card));
       this.deck = response.data.newState.deck.map((card: number) => toCard(card));
       this.fails = response.data.newState.fails;
+      this.updateSets();
       return response.data.isSet;
     });
 

@@ -130,5 +130,24 @@ namespace backend.Controllers
 
       return res;
     }
+
+    [HttpGet]
+    [Route("[action]/{id}")]
+    public async Task<ActionResult<List<int[]>>> SetsInHand(long id) {
+    var game = await _context.Games.FindAsync(id);
+      if (game == null) {
+        return NotFound();
+      }
+
+      var res = game.GetIndicesOfSet();
+
+      if (res == null) {
+        return BadRequest();
+      }
+
+      Console.WriteLine($"Found {res.Count} sets in hand");
+
+      return res;
+    }
   }
 }

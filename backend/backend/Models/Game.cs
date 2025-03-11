@@ -11,8 +11,10 @@ public class Game {
   public DateTime StartedAt { get; set; }
   public DateTime? FinishedAt { get; set; }
   public int Fails { get; set; }
+  public int Hints { get; set; }
   public ushort[]? Hand { get; set; }
   public ushort[]? Deck { get; set; }
+  public ushort[]? Found { get; set; }
 
   public void ShuffleDeck() {
     if (Deck == null) return;
@@ -54,7 +56,12 @@ public class Game {
   public bool GameIsFinished() {
     if (Deck == null || Hand == null) return false;
 
-    var finished = Deck.Length == 0 && Hand.All(card => card == 0);
+    var finished = Deck.Length == 0 && Hand.Length < 12;
+
+    // Check if no sets can be made with the remaining cards
+    if (!finished && GetIndicesOfSet().Count == 0) {
+      finished = true;
+    }
 
     // Empty hand if game is finished for optimal database space usage
     if (finished) {
@@ -64,11 +71,14 @@ public class Game {
     return finished;
   }
 
+// todo: refactor`
   public SetCheckResult? IsSet(ushort[] indices, bool remove = true) {
-    if (GameIsFinished()) {
-      FinishedAt = DateTime.Now;
+    if (remove) {
+      if (GameIsFinished()) {
+        FinishedAt = DateTime.UtcNow;
 
-      return new SetCheckResult { IsFinished = true, NewState = this };
+        return new SetCheckResult { IsFinished = true, NewState = this };
+      }
     }
 
     if (indices.Length != 3 || Hand == null) {
@@ -98,7 +108,17 @@ public class Game {
     // (From the top may cause the indices to be off by one)
     if (remove) {
       foreach (var index in indices.OrderByDescending(i => i)) {
-        ReplaceCardInHand(index);
+        Console.WriteLine(Hand.Length);
+        if (Hand.Length < 13)
+        {
+            ReplaceCardInHand(index);
+        }
+        else
+        {
+            var handList = Hand.ToList();
+            handList.RemoveAt(index);
+            Hand = handList.ToArray();
+        }
       }
 
       while (GetIndicesOfSet().Count < 1 && Deck?.Length > 0) {

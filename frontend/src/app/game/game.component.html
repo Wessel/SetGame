@@ -1,61 +1,98 @@
-<div class="game-wrapper">
-  <div class="game-container text-gray-200 flex flex-col md:flex-row  w-[90%] mx-auto  md:rounded-lg md:shadow-lg">
-    <div class="game-board w-full md:w-3/5 md:mr-0">
-      @for(card of gameService.hand; track card.id) {
-        <game-card 
-          [card]="card" 
-          [selected]="card.selected || false" 
-          (click)="selectCard(card)" 
-        />
-      }
+@if(gameService.finishedAt) {
+  <div class="text-gray-200 flex flex-col w-[90%] mx-auto justify-center text-center mt-5">
+    <h1 class="text-5xl">Fin.</h1>
+    <div class="w-[50%] mx-auto">
+      <div class="flex justify-between">
+        <span class="font-bold">Started on</span>
+        <span>{{ gameService.startDate | date:'dd-MM-YYYY HH:mm' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-bold">Finished on</span>
+        <span>{{ gameService.finishedAt | date:'dd-MM-YYYY HH:mm' }}</span>
+      </div>
+
+      <div class="flex justify-between">
+        <span class="font-bold">Incorrect Matches</span>
+        <span>{{ gameService.stats().fails }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-bold">Hints Requested</span>
+        <span>{{ gameService.stats().hints }}</span>
+      </div>
     </div>
 
-    <div class="stats w-full md:w-2/5">
-      <div class="text-sm">
-          <button class="red" (click)="deleteGame()">
-            Delete Game
-          </button>
-          <button class="red" (click)="showHint()">hint</button>
-        <div class="flex flex-row h-[40px] items-center">
-          <p class="font-bold mr-5 flex">Hint</p>
-          @for(card of hint; track card.id) {
-            <game-card 
-              [card]="card" 
-              [selected]="false"
-              [small]="true"
-              (click)="selectCard(card)"
-            />
-          }
-        </div>
-        
-        <p>
-          <span class="font-bold">Deck Size</span> 
-          <span class="float-right">{{ gameService.stats().size }}</span>
-        </p>
-        <p>
-          <span class="font-bold">Incorrect Matches</span> 
-          <span class="float-right">{{ gameService.stats().fails }}</span>
-        </p>
-        <p>
-          <span class="font-bold" style="padding-right: 100px;">Started on</span> 
-          <span class="float-right">{{ gameService.stats().dateStarted | date:'dd-MM-YYYY HH:mm' }}</span>
-        </p>
-      <div>
-        <h1 class="font-bold">Upcoming Cards</h1>
-        <div class="flex flex-wrap">
-          @for(card of gameService.deck; track card.id) {
-            <game-card 
-              [card]="card" 
-              [selected]="false" 
-              [small]="true"
-              (click)="selectCard(card)"
-            />
-          }
+    <div class="flex justify-center mt-4">
+      <button class="red" (click)="deleteGame()">
+      Delete game
+      </button>
+    </div>
+  </div>
+}
+
+  <div *ngIf="!gameService.finishedAt" class="game-wrapper">
+    <div class="game-container text-gray-200 flex flex-col md:flex-row  w-[90%] mx-auto  md:rounded-lg md:shadow-lg">
+      <div class="game-board w-full md:w-3/5 md:mr-0 h-full">
+        @for(card of gameService.hand; track card.id) {
+          <game-card 
+            [card]="card" 
+            [selected]="card.selected || false" 
+            (click)="selectCard(card)" 
+          />
+        }
       </div>
-      <div>
-        <h1 class="font-bold">Available Sets</h1>
-        <div class="flex flex-wrap">
-          @for(row of this.gameService.possibleSets; track row) {
+
+      <div class="stats w-full md:w-2/5">
+        <div class="text-sm">
+            <button class="red" (click)="deleteGame()">
+              Delete Game
+            </button>
+            <button class="red" (click)="showHint()">hint</button>
+          <div class="flex flex-row h-[40px] items-center">
+            <p class="font-bold mr-5 flex">Hint</p>
+            @for(card of hint; track card.id) {
+              <game-card 
+                [card]="card" 
+                [selected]="false"
+                [small]="true"
+                (click)="selectCard(card)"
+              />
+            }
+          </div>
+
+          <p>
+            <span class="font-bold">Deck Size</span> 
+            <span class="float-right">{{ gameService.stats().size }}</span>
+          </p>
+          <p>
+            <span class="font-bold">Incorrect Matches</span> 
+            <span class="float-right">{{ gameService.stats().fails }}</span>
+          </p>
+          <p>
+            <span class="font-bold">Hints Requested</span>
+            <span class="float-right">{{ gameService.stats().hints }}</span>
+          </p>
+          <p>
+            <span class="font-bold" style="padding-right: 100px;">Started on</span> 
+            <span class="float-right">{{ gameService.stats().dateStarted | date:'dd-MM-YYYY HH:mm' }}</span>
+          </p>
+
+          <div class="mt-2">
+            <h1 class="font-bold">Upcoming Cards</h1>
+            <div class="flex flex-wrap">
+              @for(card of gameService.deck; track card.id) {
+                <game-card 
+                  [card]="card" 
+                  [selected]="false" 
+                  [small]="true"
+                />
+              }
+          </div>
+
+          <div class="flex flex-wrap mt-2">
+            <div class="w-full md:w-1/2">
+              <h1 class="font-bold">Available Sets</h1>
+              <div class="flex flex-wrap">
+                @for(row of this.gameService.possibleSets; track row) {
             <div class="w-full flex flex-wrap">
                 <p class="font-bold mr-5 flex items-center">Set {{$index + 1}}</p>
               @for(card of row; track card.id) {
@@ -67,9 +104,27 @@
                 />
               }
             </div>
-          }
-        </div>
+                }
+              </div>
+            </div>
+            <div class="w-full md:w-1/2">
+              <h1 class="font-bold">Found Sets</h1>
+              <div class="flex flex-wrap">
+                @for(row of this.gameService.foundSets; track row) {
+              <div class="w-full flex flex-wrap justify-end">
+                <p class="font-bold mr-5 flex items-center">Set {{$index + 1}}</p>
+              @for(card of row; track card.id) {
+                <game-card 
+                [card]="card" 
+                [selected]="false"
+                [small]="true"
+                />
+              }
+            </div>
+                }
+              </div>
+            </div>
+          </div>
       </div>
     </div>
   </div>
-</div>

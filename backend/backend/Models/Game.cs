@@ -14,7 +14,7 @@ public class Game {
   public int Hints { get; set; }
   public ushort[]? Hand { get; set; }
   public ushort[]? Deck { get; set; }
-  public ushort[]? Found { get; set; }
+  public ushort[] Found { get; set; } = Array.Empty<ushort>();
 
   public void ShuffleDeck() {
     if (Deck == null) return;
@@ -108,7 +108,10 @@ public class Game {
     // (From the top may cause the indices to be off by one)
     if (remove) {
       foreach (var index in indices.OrderByDescending(i => i)) {
-        Console.WriteLine(Hand.Length);
+        var foundList = Found.ToList();
+        foundList.Add(Hand[index]);
+        Found = foundList.ToArray();
+
         if (Hand.Length < 13)
         {
             ReplaceCardInHand(index);

@@ -10,15 +10,11 @@ import { CommonModule } from '@angular/common';
   styleUrl: './game-list.component.scss'
 })
 export class GameListComponent {
-  games: { id: number, startedAt: Date, finishedAt: Date | null, fails: number, hand: any[], deck: any[] }[] = [];
+  games: { id: number, startedAt: Date, finishedAt: Date | null, fails: number, hand: any[], deck: any[] }[] | undefined;
   constructor(public userService: UserDataService, private router: Router) { this.getGames() }
 
   async getGames() {
     this.games = await this.userService.getGames();
-    console.log('gamesfromservice ' + this.userService.getGames())
-
-    console.log('games' + this.games);
-    // return this.userService.getGames();
   }
 
   enterGame(game: number) {

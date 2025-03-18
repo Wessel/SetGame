@@ -39,6 +39,12 @@
             (click)="selectCard(card)" 
           />
         }
+        @empty() {
+          <div class="flex flex-col items-center justify-center h-full col-span-full row-span-full">
+            <div class="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+            <p class="mt-4">Loading cards...</p>
+          </div>
+        }
       </div>
 
       <div class="stats w-full md:w-2/5">

@@ -1,24 +1,31 @@
 <div class="text-gray-200 flex flex-col md:flex-row w-[90%] mx-auto">
-  <table class="game-table mx-auto w-[90%] mt-15 mb-5 text-xs">
-    <thead>
-      <tr>
-        <th>Game ID</th>
-        <th>Started At</th>
-        <th>Status</th>
-        <th>Fails</th>
-        <th>Cards Remaining</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for(game of games; track game.id) {
-        <tr (click)="enterGame(game.id)"  class="cursor-pointer hover:bg-gray-700">
-          <td>{{ game.id }}</td>
-          <td>{{ game.startedAt | date: 'dd-MM-YYYY HH:mm' }}</td>
-          <td>{{ game.finishedAt ? 'Completed' : 'In Progress' }}</td>
-          <td>{{ game.fails }}</td>
-          <td>{{ game.deck.length + game.hand.length }}</td>
+  @if (games) {
+    <table class="game-table mx-auto w-[90%] mt-15 mb-5 text-xs">
+      <thead>
+        <tr>
+          <th>Game ID</th>
+          <th>Started At</th>
+          <th>Status</th>
+          <th>Fails</th>
+          <th>Cards Remaining</th>
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for(game of games; track game.id) {
+          <tr (click)="enterGame(game.id)"  class="cursor-pointer hover:bg-gray-700">
+            <td>{{ game.id }}</td>
+            <td>{{ game.startedAt | date: 'dd-MM-YYYY HH:mm' }}</td>
+            <td>{{ game.finishedAt ? 'Completed' : 'In Progress' }}</td>
+            <td>{{ game.fails }}</td>
+            <td>{{ game.deck.length + game.hand.length }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <div class="mt-15 flex flex-col items-center w-[90%] mx-auto">
+      <div class="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+      <p class="mt-4">Loading games...</p>
+    </div>
+  }
 </div>

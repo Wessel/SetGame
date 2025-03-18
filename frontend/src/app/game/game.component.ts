@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { GameService } from '../../service/game/game.service';
 import { Card } from '../models/card';
 import { CommonModule } from '@angular/common';
@@ -15,8 +15,11 @@ import { ActivatedRoute, UrlSegment, Router } from '@angular/router';
 export class GameComponent {
   gameId: string = '';
   hint: Card[] = []
+  gameService: GameService = inject(GameService);
+  route: ActivatedRoute = inject(ActivatedRoute);
+  router: Router = inject(Router);
 
-  constructor(public gameService: GameService, private route: ActivatedRoute, private router: Router) {
+  constructor() {
     this.route.params.subscribe(params => {
       this.gameId = params['id'];
 

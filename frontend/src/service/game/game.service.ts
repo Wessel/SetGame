@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Card, toCard } from '../../app/models/card';
+// todo: Rewrite to use angular http client instead of axios, supports always sending tokens
 import axios from 'axios';
 
 @Injectable({ providedIn: 'root' })

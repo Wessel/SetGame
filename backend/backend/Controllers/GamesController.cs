@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
@@ -20,12 +21,14 @@ namespace backend.Controllers
 
     // GET: api/Games
     [HttpGet]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<Game>>> GetGames() {
       return await _context.Games.ToListAsync();
     }
 
     // GET: api/Games/5
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<ActionResult<Game>> GetGame(long id)
     {
       var game = await _context.Games.FindAsync(id);
@@ -41,6 +44,7 @@ namespace backend.Controllers
     // PUT: api/Games/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> PutGame(long id, Game game)
     {
       if (id != game.Id)
@@ -66,6 +70,7 @@ namespace backend.Controllers
     // POST: api/Games
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
+    [Authorize]
     public async Task<ActionResult<Game>> PostGame() {
       var newGame = new Game {
         Deck = (
@@ -92,6 +97,7 @@ namespace backend.Controllers
 
     // DELETE: api/Games/5
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> DeleteGame(long id) {
       var game = await _context.Games.FindAsync(id);
       if (game == null)
@@ -111,6 +117,7 @@ namespace backend.Controllers
 
     [HttpPost]
     [Route("[action]/{id}")]
+    [Authorize]
   public async Task<ActionResult<SetCheckResult>> CheckSet(
     long id, 
     [FromBody] ushort[] cardIndices
@@ -133,6 +140,7 @@ namespace backend.Controllers
 
     [HttpGet]
     [Route("[action]/{id}")]
+    [Authorize]
     public async Task<ActionResult<List<int[]>>> SetsInHand(long id) {
     var game = await _context.Games.FindAsync(id);
       if (game == null) {

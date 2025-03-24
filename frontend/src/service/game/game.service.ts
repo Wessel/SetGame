@@ -3,6 +3,8 @@ import { Card, toCard } from '../../app/models/card';
 // todo: Rewrite to use angular http client instead of axios, supports always sending tokens
 import axios from 'axios';
 
+axios.defaults.headers.common['Authorization'] = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImp0aSI6ImRmNThhYTU3LWZkNzItNGIzYS05OTNmLTY4NjAyNGMzYjdlNSIsImV4cCI6MTc0MjgxODEzOCwiaXNzIjoid2Vzc2VsLmdnIiwiYXVkIjoid2Vzc2VsLmdnIn0.hDf8qcxXeSFQhmgnMzBrH3ZJJMplwZ-1RQwNxeZo5ok';
+
 @Injectable({ providedIn: 'root' })
 
 export class GameService {

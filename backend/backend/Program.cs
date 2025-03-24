@@ -1,9 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Models;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
+// Load .env file
 Env.Load();
 
+// Set up config and builder, load env into it
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration
   .AddEnvironmentVariables()
@@ -11,35 +16,52 @@ var config = builder.Configuration
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+  .AddJwtBearer(options => {
+    options.TokenValidationParameters = new TokenValidationParameters {
+      ValidateIssuer = string.IsNullOrEmpty(config["JWT_ISSUER"]) ? false : true,
+      ValidateAudience = string.IsNullOrEmpty(config["JWT_AUDIENCE"]) ? false : true,
+      ValidateLifetime = true,
+      ValidateIssuerSigningKey = true,
+      ValidIssuer = config["JWT_ISSUER"],
+      ValidAudience = config["JWT_AUDIENCE"],
+      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT_SECRET"] ?? ""))
+    };
+  });
+builder.Services.AddAuthorization();
 
-var postgres_connection_string = $@"User ID={config["DB_USER"]};
-                                    Password={config["DB_PASS"]};
-                                    Host={config["DB_HOST"]};
-                                    Port={config["DB_PORT"]};
-                                    Database={config["DB_NAME"]};
-                                    Connection Lifetime=0;";
+// Set up database connection
+var postgres_connection_string = 
+  $@"User ID={config["DB_USER"]};
+     Password={config["DB_PASS"]};
+     Host={config["DB_HOST"]};
+     Port={config["DB_PORT"]};
+     Database={config["DB_NAME"]};
+     Connection Lifetime=0;
+  ";
 
 builder.Services.AddDbContext<GameContext>(opt => opt.UseNpgsql(postgres_connection_string));
 
 var app = builder.Build();
 
 // Disable CORS
-app.Logger.LogInformation("Disabling CORS to allow communication with frontend");
 app.UseCors(builder =>  {
   builder.AllowAnyOrigin()
     .AllowAnyMethod()
     .AllowAnyHeader();
 });
 
+// Enable Swagger UI
 if (app.Environment.IsDevelopment()) {
-  app.Logger.LogInformation("Enabling Swagger UI for development");
   app.MapOpenApi();
   app.UseSwaggerUi(options => options.DocumentPath = "/openapi/v1.json");
 }
 
-app.Logger.LogInformation("Creating middleware");
-// app.UseHttpsRedirection();
-// app.UseAuthorization();
+// Enable Middleware
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
+// Start the server
 app.Run();

@@ -1,178 +1,172 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 
-namespace backend.Controllers
-{
-  [Route("/api/v1/[controller]")]
-  [ApiController]
-  public class GamesController : ControllerBase {
-    private readonly GameContext _context;
+namespace backend.Controllers;
 
-    public GamesController(GameContext context) {
-      _context = context;
+[Route("/api/v1/[controller]")]
+[ApiController]
+public class GamesController(GameContext context) : ControllerBase {
+  private readonly GameContext _context = context;
+
+  private long? ParseUserId() {
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    if (long.TryParse(userIdClaim, out var userId)) {
+      return userId;
     }
 
-    // GET: api/Games
-    [HttpGet]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<Game>>> GetGames() {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    return null;
+  }
 
-      if (!long.TryParse(userIdClaim, out var userId)) {
-        return Unauthorized();
-      }
-
-      // return await _context.Games.ToListAsync();
-      return await _context.Games.Where(g => g.UserId == userId).ToListAsync();
+  // GET: api/Games
+  [HttpGet]
+  [Authorize]
+  public async Task<ActionResult<IEnumerable<Game>>> GetGames() {
+    var user = ParseUserId();
+    if (user == null) {
+      return BadRequest();
     }
 
-    // GET: api/Games/5
-    [HttpGet("{id}")]
-    [Authorize]
-    public async Task<ActionResult<Game>> GetGame(long id)
-    {
-      var game = await _context.Games.FindAsync(id);
+    return await _context.Games
+      .Where(g => g.UserId == user)
+      .ToListAsync();
+  }
 
-      if (game == null)
-      {
-        return NotFound();
-      }
-
-      return game;
+  // GET: api/Games/5
+  [HttpGet("{id}")]
+  [Authorize]
+  public async Task<ActionResult<Game>> GetGame(long id) {
+    var user = ParseUserId();
+    if (user == null) {
+      return BadRequest();
     }
 
-    // PUT: api/Games/5
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    [HttpPut("{id}")]
-    [Authorize]
-    public async Task<IActionResult> PutGame(long id, Game game)
-    {
-      if (id != game.Id)
-      {
-        return BadRequest();
-      }
+    var game = await _context.Games
+      .Where(g => g.Id == id && g.UserId == user)
+      .FirstOrDefaultAsync();
 
-      _context.Entry(game).State = EntityState.Modified;
-
-      try {
-        await _context.SaveChangesAsync();
-      } catch (DbUpdateConcurrencyException) {
-        if (!GameExists(id)) {
-          return NotFound();
-        } else {
-          throw;
-        }
-      }
-
-      return NoContent();
+    if (game == null || game.UserId != user) {
+      return NotFound();
     }
 
-    // POST: api/Games
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    [HttpPost]
-    [Authorize]
-    public async Task<ActionResult<Game>> PostGame() {
-      
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    return game;
+  }
 
-      if (!long.TryParse(userIdClaim, out var userId)) {
-        return Unauthorized();
-      }
-
-      var newGame = new Game {
-        Deck = (
-          from shape in Enum.GetValues(typeof(CardShape)).Cast<CardShape>()
-          from color in Enum.GetValues(typeof(CardColor)).Cast<CardColor>()
-          from count in Enum.GetValues(typeof(CardCount)).Cast<CardCount>()
-          from shade in Enum.GetValues(typeof(CardShade)).Cast<CardShade>()
-          select new Card {
-            Shape = shape,
-            Color = color,
-            Count = count,
-            Shade = shade
-          }.ToUshort()).ToArray(),
-          UserId = userId
-      };
-
-      newGame.ShuffleDeck();
-      newGame.DealHand();
-
-      _context.Games.Add(newGame);
-      await _context.SaveChangesAsync();
-
-      return CreatedAtAction(nameof(GetGame), new { id = newGame.Id }, newGame);
+  // POST: api/Games
+  // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+  [HttpPost]
+  [Authorize]
+  public async Task<ActionResult<Game>> PostGame() {
+    var user = ParseUserId();
+    if (user == null) {
+      return BadRequest();
     }
 
-    // DELETE: api/Games/5
-    [HttpDelete("{id}")]
-    [Authorize]
-    public async Task<IActionResult> DeleteGame(long id) {
-      var game = await _context.Games.FindAsync(id);
-      if (game == null)
-      {
-        return NotFound();
-      }
+    var newGame = new Game {
+      UserId = (long)user,
+      Deck = [.. 
+        from shape in Enum.GetValues<CardShape>().Cast<CardShape>()
+        from color in Enum.GetValues<CardColor>().Cast<CardColor>()
+        from count in Enum.GetValues<CardCount>().Cast<CardCount>()
+        from shade in Enum.GetValues<CardShade>().Cast<CardShade>()
+        select new Card {
+          Shape = shape,
+          Color = color,
+          Count = count,
+          Shade = shade
+        }.ToUshort()
+      ]
+    };
 
-      _context.Games.Remove(game);
-      await _context.SaveChangesAsync();
+    newGame.ShuffleDeck();
+    newGame.DealHand();
 
-      return NoContent();
+    _context.Games.Add(newGame);
+    await _context.SaveChangesAsync();
+
+    return CreatedAtAction(nameof(GetGame), new { id = newGame.Id }, newGame);
+  }
+
+  // DELETE: api/Games/5
+  [HttpDelete("{id}")]
+  [Authorize]
+  public async Task<IActionResult> DeleteGame(long id) {
+    var user = ParseUserId();
+    if (user == null) {
+      return BadRequest();
     }
 
-    private bool GameExists(long id) {
-      return _context.Games.Any(e => e.Id == id);
+    var game = await _context.Games
+      .Where(g => g.Id == id && g.UserId == user)
+      .FirstOrDefaultAsync();
+
+    if (game == null) {
+      return NotFound();
     }
 
-    [HttpPost]
-    [Route("[action]/{id}")]
-    [Authorize]
+    _context.Games.Remove(game);
+    await _context.SaveChangesAsync();
+
+    return NoContent();
+  }
+
+  [HttpPost]
+  [Route("[action]/{id}")]
+  [Authorize]
   public async Task<ActionResult<SetCheckResult>> CheckSet(
     long id,
     [FromBody] ushort[] cardIndices
   ) {
-    var game = await _context.Games.FindAsync(id);
-      if (game == null) {
-        return NotFound();
-      }
-
-      var res = game.IsSet(cardIndices);
-
-      if (res == null) {
-        return BadRequest();
-      }
-
-      await _context.SaveChangesAsync();
-
-      return res;
+    var user = ParseUserId();
+    if (user == null) {
+      return BadRequest();
     }
 
-    [HttpGet]
-    [Route("[action]/{id}")]
-    [Authorize]
-    public async Task<ActionResult<List<int[]>>> SetsInHand(long id) {
-    var game = await _context.Games.FindAsync(id);
-      if (game == null) {
-        return NotFound();
-      }
+    var game = await _context.Games
+      .Where(g => g.Id == id && g.UserId == user)
+      .FirstOrDefaultAsync();
 
-      var res = game.GetIndicesOfSet();
-
-      if (res == null) {
-        return BadRequest();
-      }
-
-      Console.WriteLine($"Found {res.Count} sets in hand");
-
-      return res;
+    if (game == null) {
+      return NotFound();
     }
+
+    var res = game.IsSet(cardIndices);
+
+    if (res == null) {
+      return BadRequest();
+    }
+
+    await _context.SaveChangesAsync();
+
+    return res;
+  }
+
+  [HttpGet]
+  [Route("[action]/{id}")]
+  [Authorize]
+  public async Task<ActionResult<List<int[]>>> SetsInHand(long id) {
+    var user = ParseUserId();
+    if (user == null) {
+      return BadRequest();
+    }
+
+    var game = await _context.Games
+      .Where(g => g.Id == id && g.UserId == user)
+      .FirstOrDefaultAsync();
+
+    if (game == null) {
+      return NotFound();
+    }
+
+    var res = game.GetIndicesOfSet();
+
+    if (res == null) {
+      return BadRequest();
+    }
+
+    return res;
   }
 }

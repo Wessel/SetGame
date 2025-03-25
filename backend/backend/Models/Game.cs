@@ -18,8 +18,6 @@ public class Game {
   public ushort[]? Deck { get; set; }
   public ushort[] Found { get; set; } = Array.Empty<ushort>();
 
-  public User User { get; set; } = null!;
-
   public void ShuffleDeck() {
     if (Deck == null) return;
 

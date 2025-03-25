@@ -11,7 +11,7 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private API_URL = 'http://localhost:5224/api/Auth';
+  private API_URL = 'http://localhost:5224/api/v1/Auth';
   private tokenKey = 'auth_token';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
   public redirectUrl: string | null = null;

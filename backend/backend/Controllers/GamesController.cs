@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace backend.Controllers
 {
@@ -23,7 +25,14 @@ namespace backend.Controllers
     [HttpGet]
     [Authorize]
     public async Task<ActionResult<IEnumerable<Game>>> GetGames() {
-      return await _context.Games.ToListAsync();
+      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+      if (!long.TryParse(userIdClaim, out var userId)) {
+        return Unauthorized();
+      }
+
+      // return await _context.Games.ToListAsync();
+      return await _context.Games.Where(g => g.UserId == userId).ToListAsync();
     }
 
     // GET: api/Games/5
@@ -72,6 +81,13 @@ namespace backend.Controllers
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<Game>> PostGame() {
+      
+      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+      if (!long.TryParse(userIdClaim, out var userId)) {
+        return Unauthorized();
+      }
+
       var newGame = new Game {
         Deck = (
           from shape in Enum.GetValues(typeof(CardShape)).Cast<CardShape>()
@@ -83,12 +99,13 @@ namespace backend.Controllers
             Color = color,
             Count = count,
             Shade = shade
-          }.ToUshort()).ToArray()
+          }.ToUshort()).ToArray(),
+          UserId = userId
       };
 
       newGame.ShuffleDeck();
       newGame.DealHand();
-      
+
       _context.Games.Add(newGame);
       await _context.SaveChangesAsync();
 
@@ -119,7 +136,7 @@ namespace backend.Controllers
     [Route("[action]/{id}")]
     [Authorize]
   public async Task<ActionResult<SetCheckResult>> CheckSet(
-    long id, 
+    long id,
     [FromBody] ushort[] cardIndices
   ) {
     var game = await _context.Games.FindAsync(id);

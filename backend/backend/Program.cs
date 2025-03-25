@@ -31,7 +31,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Set up database connection
-var postgres_connection_string = 
+var postgres_connection_string =
   $@"User ID={config["DB_USER"]};
      Password={config["DB_PASS"]};
      Host={config["DB_HOST"]};

@@ -1,0 +1,34 @@
+<p>login-screen works!</p>
+<div class="flex items-center justify-center text-white">
+  <div class="max-w-md w-full">
+    <div class="text-center">
+      <h2 class="text-3xl font-bold">Please, Sign in to your account</h2>
+    </div>
+    
+    <form class="space-y-2" (ngSubmit)="login()">
+      <div>
+        <label for="username" class="block text-sm font-medium">Username</label>
+        <input id="username" name="username" type="text" 
+               class="w-full border border-gray-100 rounded-xs p-1"
+               [(ngModel)]="username" required>
+      </div>
+      
+      <div>
+        <label for="password" class="block text-sm font-medium">Password</label>
+        <input id="password" name="password" type="password" 
+               class="w-full border border-gray-100 rounded-xs p-1"
+               [(ngModel)]="password" required>
+      </div>
+      
+      <div class="text-red-500 text-sm h-[15px]">
+        {{ error }}
+      </div>
+      
+        <div class="text-center">
+          <button type="submit">
+            Sign in
+          </button>
+        </div>
+    </form>
+  </div>
+</div>

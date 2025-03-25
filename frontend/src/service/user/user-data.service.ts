@@ -21,7 +21,7 @@ axios.interceptors.request.use(
 export class UserDataService {
 
   constructor() {
-    this.login({ username: 'admin', password: 'password' });
+    // this.login({ username: 'admin', password: 'password' });
   }
 
   public async login(credentials: any) {

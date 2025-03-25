@@ -5,9 +5,11 @@ public struct SetCheckResult {
   public bool? IsFinished { get; set; }
   public Game NewState { get; set; }
 }
+// todo: add check to routes if owner is user
 
 public class Game {
   public long Id { get; set; }
+  public long UserId { get; set; }
   public DateTime StartedAt { get; set; }
   public DateTime? FinishedAt { get; set; }
   public int Fails { get; set; }
@@ -15,6 +17,8 @@ public class Game {
   public ushort[]? Hand { get; set; }
   public ushort[]? Deck { get; set; }
   public ushort[] Found { get; set; } = Array.Empty<ushort>();
+
+  public User User { get; set; } = null!;
 
   public void ShuffleDeck() {
     if (Deck == null) return;

@@ -13,7 +13,7 @@ import { ActivatedRoute, UrlSegment, Router } from '@angular/router';
 })
 
 export class GameComponent {
-  gameId: string = '';
+  gameId: number = -1;
   hint: Card[] = []
   gameService: GameService = inject(GameService);
   route: ActivatedRoute = inject(ActivatedRoute);
@@ -21,7 +21,7 @@ export class GameComponent {
 
   constructor() {
     this.route.params.subscribe(params => {
-      this.gameId = params['id'];
+      this.gameId = parseInt(params['id']);
 
       this.attachId(this.gameId);
     });
@@ -31,10 +31,10 @@ export class GameComponent {
     this.router.navigate(['/']);
   }
 
-  async attachId(i: string) {
+  async attachId(i: number) {
     const id = await this.gameService.initGame(i);
 
-    this.route.snapshot.url.push(new UrlSegment(id, {}));
+    this.route.snapshot.url.push(new UrlSegment(id.toString(), {}));
     window.history.replaceState({}, '', `/game/${id}`);
   }
 
@@ -49,8 +49,8 @@ export class GameComponent {
   }
 
   async showHint() {
-    if (this.gameService.possibleSets.length < 0) return console.error('No valid sets found');
+    // if (this.hint.length > 0) return;
 
-    this.hint = [this.gameService.possibleSets[0][0], this.gameService.possibleSets[0][1]]
+    this.hint = await this.gameService.showHint();
   }
 }

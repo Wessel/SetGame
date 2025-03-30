@@ -1,179 +1,129 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Card, toCard } from '../../app/models/card';
 import { lastValueFrom } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
+
+interface GameResponse {
+  deck: number[];
+  hand: number[];
+  found: number[];
+  startedAt: Date;
+  finishedAt?: Date;
+  fails: number;
+  hints: number;
+  id: number;
+}
+
+interface SetCheckResponse {
+  isSet: boolean;
+  newState: GameResponse;
+}
+
+type HintResponse = number[];
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
-  private API_URL = 'http://localhost:5224/api/v1/Games';
+  private http = inject(HttpClient);
   
-  public deck: Card[] = [];
-  public hand: Card[] = [];
-  public foundSets: Card[][] = [];
-  public possibleSets: Card[][] = [];
+  private API_URL = 'http://localhost:5224/api/v1/Games';
 
-  public fails: number = 0;
-  public hints: number = 0;
+  public deck:          Card[]   = [];
+  public hand:          Card[]   = [];
+  public selectedCards: Card[]   = [];
+  public foundSets:     Card[][] = [];
+  public possibleSets:  Card[][] = [];
+
+  public fails:  number = 0;
+  public hints:  number = 0;
   public gameId: number = 0;
-  public startDate: Date = new Date();
+  
+  public startDate:   Date = new Date();
   public finishedAt?: Date;
-  public selectedCards: Card[] = [];
 
-  constructor(
-    private http: HttpClient,
-  ) {}
+  constructor() {}
 
-  public initGame(gameId?: string): Promise<string> {
-    this.deck = [];
-    this.hand = [];
-    return gameId ? this.initializeExistingGame(gameId) : this.initializeDeck();
+  public updateState(game: GameResponse): void {
+    this.gameId = game.id;
+    this.fails = game.fails;
+    this.hints = game.hints;
+    this.startDate = game.startedAt;
+    this.finishedAt = game.finishedAt;
+
+    this.deck = game.deck.map(toCard);
+    this.hand = game.hand.map(toCard);
+    this.foundSets = [];
+
+    // Is stored as [card1, card2, card3, ...], chunk into sets of 3
+    game.found.reduce((acc: Card[][], card: number, index: number) => {
+      if (index % 3 === 0) acc.push([]);
+      acc[acc.length - 1].push(toCard(card));
+      return acc;
+    }, this.foundSets);
+
+    // Shows all sets in hand for admins
+    this.getSetsInHand();
   }
 
-  public stats(): any {
-    const formattedDate = `${this.startDate.getDate().toString().padStart(2, '0')}-${(this.startDate.getMonth() + 1).toString().padStart(2, '0')}-${this.startDate.getFullYear()} ${this.startDate.getHours().toString().padStart(2, '0')}:${this.startDate.getMinutes().toString().padStart(2, '0')}`;
-    return { size: this.deck.length, fails: this.fails, hints: this.hints, dateStarted: formattedDate };
-  }
-
-  public async initializeExistingGame(gameId: string): Promise<string> {
-    try {
-      const response = await lastValueFrom(this.http.get<any>(`${this.API_URL}/${gameId}`));
-      
-      response.deck.forEach((card: number) => {
-        this.deck.push(toCard(card));
-      });
-      
-      response.hand.forEach((card: number) => {
-        this.hand.push(toCard(card));
-      });
-      
-      this.startDate = new Date(response.startedAt);
-      this.fails = response.fails;
-      this.hints = response.hints;
-      this.finishedAt = response.finishedAt ? new Date(response.finishedAt) : undefined;
-      
-      this.foundSets = [];
-      for (let i = 0; i < response.found.length; i += 3) {
-        this.foundSets.push(response.found.slice(i, i + 3).map((card: number) => toCard(card)));
-      }
-      
-      this.gameId = response.id;
-      this.updateSets();
-      return response.id.toString();
-    } catch (error) {
-      console.error('Error initializing existing game', error);
-      throw error;
+  public async initGame(gameId?: number): Promise<number> {
+    // Fetch game data from the server, use lastValueFrom to convert Observable to Promise
+    let game: GameResponse;
+    if (gameId) {
+      game = await lastValueFrom(this.http.get<GameResponse>(`${this.API_URL}/${gameId}`))
+    } else {
+      game = await lastValueFrom(this.http.post<GameResponse>(this.API_URL, {}));
     }
+
+    // Update the game state with the fetched data
+    this.updateState(game);
+
+    return game.id;
   }
 
-  private async initializeDeck(): Promise<string> {
-    try {
-      const response = await lastValueFrom(this.http.post<any>(this.API_URL, {}));
-      
-      response.deck.forEach((card: number) => {
-        this.deck.push(toCard(card));
-      });
-      
-      response.hand.forEach((card: number) => {
-        this.hand.push(toCard(card));
-      });
-      
-      this.startDate = new Date(response.startedAt);
-      this.fails = response.fails;
-      this.hints = response.hints;
-      this.gameId = response.id;
-      this.finishedAt = response.finishedAt ? new Date(response.finishedAt) : undefined;
-      
-      this.foundSets = [];
-      for (let i = 0; i < response.found.length; i += 3) {
-        this.foundSets.push(response.found.slice(i, i + 3).map((card: number) => toCard(card)));
-      }
-      
-      this.updateSets();
-      return response.id.toString();
-    } catch (error) {
-      console.error('Error initializing deck', error);
-      throw error;
-    }
-  }
-
-  public async updateSets(): Promise<Card[][]> {
-    try {
-      const response = await lastValueFrom(
-        this.http.get<number[][]>(`${this.API_URL}/SetsInHand/${this.gameId}`)
-      );
-      
-      const cards = response.map((set: number[]) => 
-        set.map((card: number) => this.hand[card])
-      );
-      
-      this.possibleSets = cards;
-      return cards;
-    } catch (error) {
-      console.error('Error updating sets', error);
-      throw error;
-    }
+  public async getSetsInHand(): Promise<void> {
+    const sets = await lastValueFrom(
+      this.http.get<number[][]>(`${this.API_URL}/SetsInHand/${this.gameId}`)
+    );
+    
+    this.possibleSets = sets.map(set => set.map(cardIndex => this.hand[cardIndex]));
   }
 
   public async checkSet(cards: number[]): Promise<boolean> {
-    try {
-      const response = await lastValueFrom(
-        this.http.post<any>(`${this.API_URL}/CheckSet/${this.gameId}`, cards)
-      );
-      
-      this.hand = response.newState.hand.map((card: number) => toCard(card));
-      this.deck = response.newState.deck.map((card: number) => toCard(card));
-      this.fails = response.newState.fails;
-      this.hints = response.newState.hints;
-      this.finishedAt = response.newState.finishedAt ? new Date(response.newState.finishedAt) : undefined;
-      
-      this.foundSets = [];
-      for (let i = 0; i < response.newState.found.length; i += 3) {
-        this.foundSets.push(response.newState.found.slice(i, i + 3).map((card: number) => toCard(card)));
-      }
-      
-      await this.updateSets();
-      return response.isSet;
-    } catch (error) {
-      console.error('Error checking set', error);
-      throw error;
-    }
+    const response = await lastValueFrom(
+      this.http.post<SetCheckResponse>(`${this.API_URL}/CheckSet/${this.gameId}`, cards)
+    );
+
+    this.updateState(response.newState);
+
+    return response.isSet;
   }
 
   public selectCard(card: Card): void {
-    const cardIndex = this.hand.indexOf(card);
-    if (cardIndex === -1) return; // Card not found in hand
+    // Card not found in hand
+    if (this.hand.indexOf(card) === -1) return;
 
+    // Unselect card if already selected
     if (this.selectedCards.includes(card)) {
-      this.selectedCards = this.selectedCards.filter(c => c !== card);
+      this.selectedCards.splice(this.selectedCards.indexOf(card), 1);
+    // Select card if less than 3 selected
     } else if (this.selectedCards.length < 3) {
       this.selectedCards.push(card);
     }
 
+    // Check if 3 cards are selected. If so, check if they form a set
     if (this.selectedCards.length === 3) {
-      const indices = this.selectedCards.map(c => this.hand.indexOf(c));
-      this.checkSet(indices).then(isSet => {
-        this.selectedCards = [];
-      });
+      this.checkSet(this.selectedCards.map(c => this.hand.indexOf(c)));
+      this.selectedCards.length = 0;
     }
   }
 
-  public async deleteGame(): Promise<void> {
-    try {
-      await lastValueFrom(this.http.delete<void>(`${this.API_URL}/${this.gameId}`));
-    } catch (error) {
-      console.error('Error deleting game', error);
-      throw error;
-    }
+  public async showHint(): Promise<Card[]> {
+    const hint = await lastValueFrom(this.http.get<HintResponse>(`${this.API_URL}/Hint/${this.gameId}`));
+    this.hints++;
+
+    return hint.map((indexOfCard: number) => this.hand[indexOfCard]);
   }
 
-  public async showHint(): Promise<void> {
-    try {
-      await lastValueFrom(this.http.post<void>(`${this.API_URL}/Hint/${this.gameId}`, {}));
-      this.hints++;
-    } catch (error) {
-      console.error('Error showing hint', error);
-      throw error;
-    }
+  public deleteGame(): void {
+    this.http.delete<void>(`${this.API_URL}/${this.gameId}`).subscribe();
   }
 }

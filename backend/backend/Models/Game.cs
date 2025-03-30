@@ -5,7 +5,6 @@ public struct SetCheckResult {
   public bool? IsFinished { get; set; }
   public Game NewState { get; set; }
 }
-// todo: add check to routes if owner is user
 
 public class Game {
   public long Id { get; set; }
@@ -21,8 +20,8 @@ public class Game {
   public void ShuffleDeck() {
     if (Deck == null) return;
 
-    Random rand = new Random();
-    Deck = Deck.OrderBy(_ => rand.Next()).ToArray();
+    Random rand = new();
+    Deck = [.. Deck.OrderBy(_ => rand.Next())];
   }
 
   public void DealHand(int max = 12) {
@@ -113,17 +112,14 @@ public class Game {
     foreach (var index in indices.OrderByDescending(i => i)) {
       var foundList = Found.ToList();
       foundList.Add(Hand[index]);
-      Found = foundList.ToArray();
+      Found = [.. foundList];
 
-      if (Hand.Length < 13)
-      {
+      if (Hand.Length < 13) {
           ReplaceCardInHand(index);
-      }
-      else
-      {
+      } else {
           var handList = Hand.ToList();
           handList.RemoveAt(index);
-          Hand = handList.ToArray();
+          Hand = [.. handList];
       }
     }
 
@@ -142,20 +138,19 @@ public class Game {
   }
 
   public List<int[]> GetIndicesOfSet() {
-    if (Hand == null) return new List<int[]>();
-    List<int[]> res = new List<int[]>();
+    if (Hand == null) return [];
+    List<int[]> res = [];
 
     for (int i = 0; i < Hand.Length; i++) {
-        for (int j = i + 1; j < Hand.Length; j++) {
-            for (int k = j + 1; k < Hand.Length; k++) {
-                var result = SetResult([(ushort)i, (ushort)j, (ushort)k]);
+      for (int j = i + 1; j < Hand.Length; j++) {
+        for (int k = j + 1; k < Hand.Length; k++) {
+          var result = SetResult([(ushort)i, (ushort)j, (ushort)k]);
 
-                if (result == true) {
-                    Console.WriteLine($"Found set at {i}, {j}, {k}");
-                    res.Add([i, j, k]);
-                }
-            }
+          if (result == true) {
+            res.Add([i, j, k]);
+          }
         }
+      }
     }
 
     return res;

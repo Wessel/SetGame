@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using DotNetEnv;
 
 namespace backend.Controllers;
 
@@ -66,7 +67,7 @@ public class GamesController(GameContext context) : ControllerBase {
     }
 
     var newGame = new Game {
-      UserId = (long)user,
+      UserId = user.Value,
       Deck = [.. 
         from shape in Enum.GetValues<CardShape>().Cast<CardShape>()
         from color in Enum.GetValues<CardColor>().Cast<CardColor>()
@@ -148,8 +149,9 @@ public class GamesController(GameContext context) : ControllerBase {
   [Route("[action]/{id}")]
   [Authorize]
   public async Task<ActionResult<List<int[]>>> SetsInHand(long id) {
+    // Only show if user is admin (id < 1)
     var user = ParseUserId();
-    if (user == null) {
+    if (user == null || user > 0) {
       return BadRequest();
     }
 
@@ -168,5 +170,35 @@ public class GamesController(GameContext context) : ControllerBase {
     }
 
     return res;
+  }
+
+  [HttpGet]
+  [Route("[action]/{id}")]
+  [Authorize]
+  public async Task<ActionResult<List<ushort>>> Hint(long id) {
+    var user = ParseUserId();
+    if (user == null) {
+      return BadRequest();
+    }
+
+    var game = await _context.Games
+      .Where(g => g.Id == id && g.UserId == user)
+      .FirstOrDefaultAsync();
+
+    if (game == null) {
+      return NotFound();
+    }
+
+    var sets = game.GetIndicesOfSet();
+
+    if (sets == null || sets.Count == 0) {
+      return BadRequest("No sets found in hand.");
+    }
+
+    game.Hints++;
+
+    await _context.SaveChangesAsync();
+
+    return sets[0].Take(2).Select(i => (ushort)i).ToList();
   }
 }

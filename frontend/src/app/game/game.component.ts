@@ -51,6 +51,6 @@ export class GameComponent {
   async showHint() {
     // if (this.hint.length > 0) return;
 
-    this.hint = await this.gameService.showHint();
+    await this.gameService.showHint();
   }
 }

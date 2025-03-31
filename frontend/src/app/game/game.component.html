@@ -55,7 +55,7 @@
             <button class="red" (click)="showHint()">hint</button>
           <div class="flex flex-row h-[40px] items-center">
             <p class="font-bold mr-5 flex">Hint</p>
-            @for(card of hint; track card.id) {
+            @for(card of gameService.hint; track card.id) {
               <game-card 
                 [card]="card" 
                 [selected]="false"

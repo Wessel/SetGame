@@ -1,37 +1,22 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Card, toCard } from '../../app/models/card';
 import { lastValueFrom } from 'rxjs';
 
-interface GameResponse {
-  deck: number[];
-  hand: number[];
-  found: number[];
-  startedAt: Date;
-  finishedAt?: Date;
-  fails: number;
-  hints: number;
-  id: number;
-}
+import { Card, toCard } from '../../app/models/card';
+import { environment } from '../../environments/environment';
 
-interface SetCheckResponse {
-  isSet: boolean;
-  newState: GameResponse;
-}
-
-type HintResponse = number[];
+import { GameResponse, SetCheckResponse, HintResponse } from './game.types';
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
   private http = inject(HttpClient);
-  
-  private API_URL = 'http://localhost:5224/api/v1/Games';
 
-  public deck:          Card[]   = [];
-  public hand:          Card[]   = [];
-  public selectedCards: Card[]   = [];
-  public foundSets:     Card[][] = [];
-  public possibleSets:  Card[][] = [];
+  public  deck:          Card[]   = [];
+  public  hand:          Card[]   = [];
+  public  hint:          Card[]   = [];
+  private selectedCards: Card[]   = [];
+  public  foundSets:     Card[][] = [];
+  public  possibleSets:  Card[][] = [];
 
   public fails:  number = 0;
   public hints:  number = 0;
@@ -40,9 +25,12 @@ export class GameService {
   public startDate:   Date = new Date();
   public finishedAt?: Date;
 
-  constructor() {}
-
-  public updateState(game: GameResponse): void {
+  private updateState(game: GameResponse): void {
+    // Clear hint if set is found
+    if ((this.deck.length + this.hand.length) !== (game.deck.length + game.hand.length)) {
+      this.hint.length = 0;
+    }
+    
     this.gameId = game.id;
     this.fails = game.fails;
     this.hints = game.hints;
@@ -68,9 +56,9 @@ export class GameService {
     // Fetch game data from the server, use lastValueFrom to convert Observable to Promise
     let game: GameResponse;
     if (gameId) {
-      game = await lastValueFrom(this.http.get<GameResponse>(`${this.API_URL}/${gameId}`))
+      game = await lastValueFrom(this.http.get<GameResponse>(`${environment.apiUrl}/${gameId}`))
     } else {
-      game = await lastValueFrom(this.http.post<GameResponse>(this.API_URL, {}));
+      game = await lastValueFrom(this.http.post<GameResponse>(environment.apiUrl, {}));
     }
 
     // Update the game state with the fetched data
@@ -79,17 +67,17 @@ export class GameService {
     return game.id;
   }
 
-  public async getSetsInHand(): Promise<void> {
+  private async getSetsInHand(): Promise<void> {
     const sets = await lastValueFrom(
-      this.http.get<number[][]>(`${this.API_URL}/SetsInHand/${this.gameId}`)
+      this.http.get<number[][]>(`${environment.apiUrl}/SetsInHand/${this.gameId}`)
     );
     
     this.possibleSets = sets.map(set => set.map(cardIndex => this.hand[cardIndex]));
   }
 
-  public async checkSet(cards: number[]): Promise<boolean> {
+  private async checkSet(cards: number[]): Promise<boolean> {
     const response = await lastValueFrom(
-      this.http.post<SetCheckResponse>(`${this.API_URL}/CheckSet/${this.gameId}`, cards)
+      this.http.post<SetCheckResponse>(`${environment.apiUrl}/CheckSet/${this.gameId}`, cards)
     );
 
     this.updateState(response.newState);
@@ -116,14 +104,14 @@ export class GameService {
     }
   }
 
-  public async showHint(): Promise<Card[]> {
-    const hint = await lastValueFrom(this.http.get<HintResponse>(`${this.API_URL}/Hint/${this.gameId}`));
+  public async showHint(): Promise<void> {
+    const hint = await lastValueFrom(this.http.get<HintResponse>(`${environment.apiUrl}/Hint/${this.gameId}`));
     this.hints++;
 
-    return hint.map((indexOfCard: number) => this.hand[indexOfCard]);
+    this.hint = hint.map((indexOfCard: number) => this.hand[indexOfCard]);
   }
 
   public deleteGame(): void {
-    this.http.delete<void>(`${this.API_URL}/${this.gameId}`).subscribe();
+    this.http.delete<void>(`${environment.apiUrl}/${this.gameId}`).subscribe();
   }
 }

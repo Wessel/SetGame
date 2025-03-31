@@ -1,37 +1,33 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Router } from '@angular/router';
 
-interface LoginResponse {
-  token: string;
-}
+import { environment } from '../../environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+import { Credentials, LoginResponse } from './auth.types';
+
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private API_URL = 'http://localhost:5224/api/v1/Auth';
-  private tokenKey = 'auth_token';
+  private http: HttpClient = inject(HttpClient);
+  private router: Router = inject(Router);
+
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
-  public redirectUrl: string | null = null;
 
-  constructor(private http: HttpClient, private router: Router) {}
-
-  login(username: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.API_URL}/login`, { username, password })
+  login(credentials: Credentials): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${environment.authUrl}/login`, credentials)
       .pipe(
         tap(response => {
-          localStorage.setItem(this.tokenKey, response.token);
+          localStorage.setItem(environment.authTokenKey, response.token);
           this.isAuthenticatedSubject.next(true);
         })
       );
   }
 
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(environment.authTokenKey);
     this.isAuthenticatedSubject.next(false);
-    this.router.navigate(['/login']);
+    this.router.navigate([ '/login' ]);
   }
 
   isAuthenticated(): Observable<boolean> {
@@ -39,10 +35,10 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    return localStorage.getItem(environment.authTokenKey);
   }
 
   private hasToken(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+    return !!localStorage.getItem(environment.authTokenKey);
   }
 }

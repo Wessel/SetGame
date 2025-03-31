@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace backend.Models;
+namespace Backend.Models;
 
 [Index(nameof(Username), IsUnique = true)]
 public class User {

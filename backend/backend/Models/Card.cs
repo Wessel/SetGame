@@ -1,4 +1,4 @@
-namespace backend.Models;
+namespace Backend.Models;
 
 // 3, 7 and 8 are chosen due to them in no way, 
 // shape or form adding up or substracting into eachother

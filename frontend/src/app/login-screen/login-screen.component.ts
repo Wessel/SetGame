@@ -38,7 +38,7 @@ export class LoginScreenComponent {
       return;
     }
 
-    this.authService.login(this.username, this.password)
+    this.authService.login({ username: this.username, password: this.password })
       .subscribe({
         next: () => {
           this.router.navigate(['/']);

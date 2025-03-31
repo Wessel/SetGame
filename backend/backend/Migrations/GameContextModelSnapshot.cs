@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using backend.Models;
+using Backend.Models;
 
 #nullable disable
 
-namespace backend.Migrations
+namespace Backend.Migrations
 {
     [DbContext(typeof(GameContext))]
     partial class GameContextModelSnapshot : ModelSnapshot
@@ -22,7 +22,7 @@ namespace backend.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("backend.Models.Game", b =>
+            modelBuilder.Entity("Backend.Models.Game", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -64,7 +64,7 @@ namespace backend.Migrations
                     b.ToTable("Games", (string)null);
                 });
 
-            modelBuilder.Entity("backend.Models.User", b =>
+            modelBuilder.Entity("Backend.Models.User", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,16 +97,16 @@ namespace backend.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("backend.Models.Game", b =>
+            modelBuilder.Entity("Backend.Models.Game", b =>
                 {
-                    b.HasOne("backend.Models.User", null)
+                    b.HasOne("Backend.Models.User", null)
                         .WithMany("Games")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("backend.Models.User", b =>
+            modelBuilder.Entity("Backend.Models.User", b =>
                 {
                     b.Navigation("Games");
                 });

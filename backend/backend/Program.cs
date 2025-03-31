@@ -1,9 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using backend.Models;
+using Backend.Models;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Backend.Interfaces;
+using Backend.Services;
+using Backend.Repositories;
 
 // Load .env file
 Env.Load();
@@ -41,6 +44,11 @@ var postgres_connection_string =
   ";
 
 builder.Services.AddDbContext<GameContext>(opt => opt.UseNpgsql(postgres_connection_string));
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IGameRepository, GameRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IGameService, GameService>();
 
 var app = builder.Build();
 

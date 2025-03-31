@@ -1,119 +1,84 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using DotNetEnv;
+using Backend.Models;
+using Backend.Interfaces;
 
 namespace backend.Controllers;
 
-[Route("/api/v1/[controller]")]
 [ApiController]
-public class GamesController(GameContext context) : ControllerBase {
-  private readonly GameContext _context = context;
+[Route("api/v1/[controller]")]
+public class GamesController(IGameService gameService) : ControllerBase {
+  private readonly IGameService _gameService = gameService;
 
   private long? ParseUserId() {
     var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-    if (long.TryParse(userIdClaim, out var userId)) {
-      return userId;
-    }
-
-    return null;
+    return long.TryParse(userIdClaim, out var userId) ? userId : null;
   }
 
-  // GET: api/Games
+  // GET: api/v1/Games
   [HttpGet]
   [Authorize]
   public async Task<ActionResult<IEnumerable<Game>>> GetGames() {
-    var user = ParseUserId();
-    if (user == null) {
+    var userId = ParseUserId();
+    if (userId == null) {
       return BadRequest();
     }
 
-    return await _context.Games
-      .Where(g => g.UserId == user)
-      .ToListAsync();
+    var games = await _gameService.GetPlayableGamesAsync(userId.Value);
+    return Ok(games);
   }
 
-  // GET: api/Games/5
+  // GET: api/v1/Games/5
   [HttpGet("{id}")]
   [Authorize]
   public async Task<ActionResult<Game>> GetGame(long id) {
-    var user = ParseUserId();
-    if (user == null) {
-      return BadRequest();
+    var userId = ParseUserId();
+    if (userId == null) {
+      return BadRequest("Invalid user ID");
     }
 
-    var game = await _context.Games
-      .Where(g => g.Id == id && g.UserId == user)
-      .FirstOrDefaultAsync();
-
-    if (game == null || game.UserId != user) {
-      return NotFound();
-    }
-
-    return game;
-  }
-
-  // POST: api/Games
-  // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-  [HttpPost]
-  [Authorize]
-  public async Task<ActionResult<Game>> PostGame() {
-    var user = ParseUserId();
-    if (user == null) {
-      return BadRequest();
-    }
-
-    var newGame = new Game {
-      UserId = user.Value,
-      Deck = [.. 
-        from shape in Enum.GetValues<CardShape>().Cast<CardShape>()
-        from color in Enum.GetValues<CardColor>().Cast<CardColor>()
-        from count in Enum.GetValues<CardCount>().Cast<CardCount>()
-        from shade in Enum.GetValues<CardShade>().Cast<CardShade>()
-        select new Card {
-          Shape = shape,
-          Color = color,
-          Count = count,
-          Shade = shade
-        }.ToUshort()
-      ]
-    };
-
-    newGame.ShuffleDeck();
-    newGame.DealHand();
-
-    _context.Games.Add(newGame);
-    await _context.SaveChangesAsync();
-
-    return CreatedAtAction(nameof(GetGame), new { id = newGame.Id }, newGame);
-  }
-
-  // DELETE: api/Games/5
-  [HttpDelete("{id}")]
-  [Authorize]
-  public async Task<IActionResult> DeleteGame(long id) {
-    var user = ParseUserId();
-    if (user == null) {
-      return BadRequest();
-    }
-
-    var game = await _context.Games
-      .Where(g => g.Id == id && g.UserId == user)
-      .FirstOrDefaultAsync();
-
+    var game = await _gameService.GetGameAsync(id, userId.Value);
+    
     if (game == null) {
       return NotFound();
     }
-
-    _context.Games.Remove(game);
-    await _context.SaveChangesAsync();
-
-    return NoContent();
+        
+    return game;
   }
 
+  // POST: api/v1/Games
+  [HttpPost]
+  [Authorize]
+  public async Task<ActionResult<Game>> PostGame() {
+    var userId = ParseUserId();
+    if (userId == null) {
+      return BadRequest();
+    }
+
+    var game = await _gameService.CreateGameAsync(userId.Value);
+    return CreatedAtAction(nameof(GetGame), new { id = game.Id }, game);
+  }
+
+  // DELETE: api/v1/Games/5
+  [HttpDelete("{id}")]
+  [Authorize]
+  public async Task<IActionResult> DeleteGame(long id) {
+      var userId = ParseUserId();
+      if (userId == null) {
+        return BadRequest();
+      }
+
+      var result = await _gameService.DeleteGameAsync(id, userId.Value);
+      
+      if (!result) {
+        return NotFound();
+      }
+
+      return NoContent();
+  }
+
+  // POST: api/v1/Games/CheckSet/5
   [HttpPost]
   [Route("[action]/{id}")]
   [Authorize]
@@ -121,84 +86,55 @@ public class GamesController(GameContext context) : ControllerBase {
     long id,
     [FromBody] ushort[] cardIndices
   ) {
-    var user = ParseUserId();
-    if (user == null) {
+    var userId = ParseUserId();
+    if (userId == null) {
       return BadRequest();
     }
 
-    var game = await _context.Games
-      .Where(g => g.Id == id && g.UserId == user)
-      .FirstOrDefaultAsync();
-
-    if (game == null) {
-      return NotFound();
-    }
-
-    var res = game.IsSet(cardIndices);
-
-    if (res == null) {
+    var result = await _gameService.CheckSetAsync(id, userId.Value, cardIndices);
+    
+    if (result == null) {
       return BadRequest();
     }
 
-    await _context.SaveChangesAsync();
-
-    return res;
+    return result;
   }
 
+  // GET: api/v1/Games/SetsInHand/5
   [HttpGet]
   [Route("[action]/{id}")]
   [Authorize]
   public async Task<ActionResult<List<int[]>>> SetsInHand(long id) {
-    // Only show if user is admin (id < 1)
-    var user = ParseUserId();
-    if (user == null || user > 0) {
+    var userId = ParseUserId();
+    if (userId == null) {
       return BadRequest();
     }
 
-    var game = await _context.Games
-      .Where(g => g.Id == id && g.UserId == user)
-      .FirstOrDefaultAsync();
-
-    if (game == null) {
+    var result = await _gameService.GetSetsInHandAsync(id, userId.Value);
+    
+    if (result == null) {
       return NotFound();
     }
 
-    var res = game.GetIndicesOfSet();
-
-    if (res == null) {
-      return BadRequest();
-    }
-
-    return res;
+    return result;
   }
 
+  // GET: api/v1/Games/Hint/5
   [HttpGet]
   [Route("[action]/{id}")]
   [Authorize]
   public async Task<ActionResult<List<ushort>>> Hint(long id) {
-    var user = ParseUserId();
-    if (user == null) {
+    var userId = ParseUserId();
+    if (userId == null) {
+        return BadRequest();
+    }
+
+    var result = await _gameService.GetHintAsync(id, userId.Value);
+    
+    if (result == null) {
       return BadRequest();
     }
 
-    var game = await _context.Games
-      .Where(g => g.Id == id && g.UserId == user)
-      .FirstOrDefaultAsync();
-
-    if (game == null) {
-      return NotFound();
-    }
-
-    var sets = game.GetIndicesOfSet();
-
-    if (sets == null || sets.Count == 0) {
-      return BadRequest("No sets found in hand.");
-    }
-
-    game.Hints++;
-
-    await _context.SaveChangesAsync();
-
-    return sets[0].Take(2).Select(i => (ushort)i).ToList();
+    return result;
   }
 }

@@ -2,6 +2,7 @@ import { Router } from '@angular/router';
 import { Component, inject } from '@angular/core';
 import { UserDataService } from '../../service/user/user-data.service';
 import { CommonModule } from '@angular/common';
+import { GameResponse } from '../../service/game/game.types';
 
 @Component({
   selector: 'app-game-list',
@@ -10,7 +11,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './game-list.component.scss'
 })
 export class GameListComponent {
-  games: { id: number, startedAt: Date, finishedAt: Date | null, fails: number, hand: any[], deck: any[] }[] | undefined;
+  games: GameResponse[] | undefined;
   userService: UserDataService = inject(UserDataService);
   router: Router = inject(Router);
   

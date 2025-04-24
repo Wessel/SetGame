@@ -65,6 +65,10 @@ public class GameService(IGameRepository gameRepository) : IGameService {
   }
 
   public async Task<List<int[]>> GetSetsInHandAsync(long gameId, long userId) {
+    if (userId > 0) {
+      return [];
+    }
+
     var game = await _gameRepository.GetGameByIdAsync(gameId, userId);
       
     if (game == null) {

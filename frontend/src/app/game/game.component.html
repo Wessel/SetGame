@@ -95,24 +95,26 @@
           </div>
 
           <div class="flex flex-wrap mt-2">
-            <div class="w-full md:w-1/2">
-              <h1 class="font-bold">Available Sets</h1>
-              <div class="flex flex-wrap">
-                @for(row of this.gameService.possibleSets; track row) {
-            <div class="w-full flex flex-wrap">
-                <p class="font-bold mr-5 flex items-center">Set {{$index + 1}}</p>
-              @for(card of row; track card.id) {
-                <game-card 
-                [card]="card" 
-                [selected]="false"
-                [small]="true"
-                (click)="selectCard(card)"
-                />
-              }
-            </div>
-                }
+            @if (gameService.possibleSets.length > 0) {
+              <div class="w-full md:w-1/2">
+                <h1 class="font-bold">Available Sets</h1>
+                <div class="flex flex-wrap">
+                  @for(row of this.gameService.possibleSets; track row) {
+                    <div class="w-full flex flex-wrap">
+                      <p class="font-bold mr-5 flex items-center">Set {{$index + 1}}</p>
+                        @for(card of row; track card.id) {
+                          <game-card 
+                          [card]="card" 
+                          [selected]="false"
+                          [small]="true"
+                          (click)="selectCard(card)"
+                          />
+                        }
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
+            }
             <div class="w-full md:w-1/2">
               <h1 class="font-bold">Found Sets</h1>
               <div class="flex flex-wrap">
